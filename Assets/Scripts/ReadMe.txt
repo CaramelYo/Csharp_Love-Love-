@@ -1,0 +1,1 @@
+This is used to store scripts and animator(if used).
