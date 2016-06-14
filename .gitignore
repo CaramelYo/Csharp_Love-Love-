@@ -1,0 +1,15 @@
+gnore the folders
+/[Ll]ibrary/
+/[Tt]emp/
+/[Oo]bj/
+
+/.vs/
+
+
+# ignore the data with .xxx
+*csproj
+*.sln
+*.suo
+*.tmp
+
+*.pidb.meta
