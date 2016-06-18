@@ -1,0 +1,17 @@
+﻿Day Event is completed!
+# Please enter the commit message for your changes. Lines starting
+# with '#' will be ignored, and an empty message aborts the commit.
+# On branch master
+# Your branch is up-to-date with 'origin/master'.
+#
+# Changes to be committed:
+#	new file:   Assets/DayEvents.txt
+#	new file:   Assets/DayEvents.txt.meta
+#	modified:   Assets/Resources/Caramel/Calendar/MemoBg.prefab
+#	new file:   Assets/Resources/Caramel/Calendar/MemoButton.prefab
+#	new file:   Assets/Resources/Caramel/Calendar/MemoButton.prefab.meta
+#	modified:   Assets/Scenes/Interface.unity
+#	modified:   Assets/Scripts/Caramel/Calendar/Calendar.cs
+#	new file:   AssetsDayEvents.txt
+#
+
