@@ -4,16 +4,40 @@ using System.Collections.Generic;
 using System.IO;
 using System;
 
-public class DayEvent
+public class Day
 {
-    public DayEvent(int ny, int nm, int nd)
+    public Day(Transform d)
+    {
+        day = d;
+        label = day.Find("DayLabel").GetComponent<UILabel>();
+        button = day.GetComponent<UIButton>();
+        e[0] = -1;
+        e[1] = -1;
+    }
+
+    public Transform day;
+    public UILabel label;
+    public UIButton button;
+    public int[] e = new int[2];
+}
+
+public class Events
+{
+    public Events(int ny, int nm, int nd, string t, string c, int fh, int fm)
     {
         date[0] = ny;
         date[1] = nm;
         date[2] = nd;
+        AddEvent(t, c, fh, fm);
     }
 
-    public DayEvent AddEvent(string t, string c, int fh, int fm, int th, int tm)
+    public Events(int d, string t, string c, int fh, int fm)
+    {
+        date[2] = d;
+        AddEvent(t, c, fh, fm);
+    }
+
+    public void AddEvent(string t, string c, int fh, int fm)
     {
         title.Add(t);
         content.Add(c);
@@ -21,23 +45,6 @@ public class DayEvent
         from.Add(new int[2]);
         from[from.Count - 1][0] = fh;
         from[from.Count - 1][1] = fm;
-
-        to.Add(new int[2]);
-        to[to.Count - 1][0] = th;
-        to[to.Count - 1][1] = tm;
-        return this;
-    }
-
-    public DayEvent AddEvent(string t, string c, int fh, int fm)
-    {
-        title.Add(t);
-        content.Add(c);
-
-        from.Add(new int[2]);
-        from[from.Count - 1][0] = fh;
-        from[from.Count - 1][1] = fm;
-        Debug.Log("title count " + title.Count + " content count " + content.Count);
-        return this;
     }
 
     public int[] date = new int[3];
@@ -45,43 +52,24 @@ public class DayEvent
     public List<int[]> from = new List<int[]>(), to = new List<int[]>();
 }
 
-public class PerMonthEvent
+public static class Common
 {
-    PerMonthEvent(int m, int d, string t, string c, bool a, int fh, int fm)
-    {
-        date[0] = m;
-        date[1] = d;
-        title = t;
-        content = c;
-        am = a;
-        from[0] = fh;
-        from[1] = fm;
-    }
-
-    public int[] date = new int[2], from = new int[2];
-    public bool am;
-    public string title, content;
+    public static DateTime now = DateTime.Now;
+    public static List<Events>[] events = new List<Events>[2];
 }
 
 public class Calendar : MonoBehaviour {
 
     //in the Background
 
-    UIButton[] days = new UIButton[42];
-    DateTime now;
-    UIGrid grid, memogrid;
-    GameObject memobg, eventmenu, topmonth, lastmonth, nextmonth, newevent, selectedday, emyear, emmonth, emday, emnew, emcancel;
-    UILabel emtitle, emcontent, emap, emhour, emminute;
-    Color thismonth = new Color(0f, 0f, 0f, 1f), othermonth = new Color(.7f, .7f, .7f, 1f), selected = new Color(0f, 0f, 1f, 1f), eventday = new Color(.8f, .8f, .4f, 1f), noteventday = new Color(1f, 1f, 1f, 1f);
-    UIInput emtinput, emcinput;
-    List<DayEvent> de = new List<DayEvent>();
-    List<PerMonthEvent> pme = new List<PerMonthEvent>();
-
-    int[] tempdayevent = new int[42], temppermonthevent = new int[42];
-    int[] nowdate = new int[3];
-    int nowfirstday, nextfirstday;
-    string filename = "DayEvents";
+    Day[] days = new Day[42];
+    UIGrid daysgrid, memogrid;
+    GameObject memobg, eventmenu;
+    Transform topmonth, lastmonth, nextmonth, newevent;
+    Color thismonth = new Color(0f, 0f, 0f, 1f), othermonth = new Color(.7f, .7f, .7f, 1f), selectedday = new Color(0f, 0f, 1f, 1f), eventday = new Color(.8f, .8f, .4f, 1f), noteventday = new Color(1f, 1f, 1f, 1f);
     
+    //int[] nowdate = new int[3];
+    int nowfirstday, nextfirstday;
 
     void Awake()
     {
@@ -89,55 +77,36 @@ public class Calendar : MonoBehaviour {
         memobg = transform.Find("MemoBg").gameObject;
         memogrid = memobg.transform.Find("MemoGrid").GetComponent<UIGrid>();
 
-        newevent = transform.Find("NewEvent").gameObject;
+        newevent = transform.Find("NewEvent");
         UIEventListener.Get(newevent.gameObject).onClick = NeweventClick;
 
-        grid = transform.Find("Days").GetComponent<UIGrid>();
+        daysgrid = transform.Find("Days").GetComponent<UIGrid>();
 
-        topmonth = transform.Find("TopMonth").gameObject;
-        lastmonth = topmonth.transform.Find("LastMonth").gameObject;
-        nextmonth = topmonth.transform.Find("NextMonth").gameObject;
-        UIEventListener.Get(lastmonth).onClick = LastmonthClick;
-        UIEventListener.Get(nextmonth).onClick = NextmonthClick;
+        topmonth = transform.Find("TopMonth");
+        lastmonth = topmonth.Find("LastMonth");
+        nextmonth = topmonth.Find("NextMonth");
+        UIEventListener.Get(lastmonth.gameObject).onClick = LastmonthClick;
+        UIEventListener.Get(nextmonth.gameObject).onClick = NextmonthClick;
 
         eventmenu = transform.Find("EventMenu").gameObject;
-        emyear = eventmenu.transform.Find("Year").gameObject;
-        emmonth = eventmenu.transform.Find("Month").gameObject;
-        emday = eventmenu.transform.Find("Day").gameObject;
-        emnew = eventmenu.transform.Find("New").gameObject;
-        emcancel = eventmenu.transform.Find("Cancel").gameObject;
-        emtinput = eventmenu.transform.Find("TitleInput").GetComponent<UIInput>();
-        emtitle = emtinput.transform.Find("TitleDetail").GetComponent<UILabel>();
-        emcinput = eventmenu.transform.Find("ContentInput").GetComponent<UIInput>();
-        emcontent = emcinput.transform.Find("ContentDetail").GetComponent<UILabel>();
-        emap = eventmenu.transform.Find("apPopupList/apPopupListLabel").GetComponent<UILabel>();
-        emhour = eventmenu.transform.Find("HourPopupList/HourPopupListLabel").GetComponent<UILabel>();
-        emminute = eventmenu.transform.Find("MinutePopupList/MinutePopupListLabel").GetComponent<UILabel>();
-
-        //UIEventListener.Get(emyear).onClick = emYearClick;
-        //UIEventListener.Get(emmonth).onClick = emMonthClick;
-        //UIEventListener.Get(emday).onClick = emDayClick;
-        UIEventListener.Get(emnew).onClick = emNewClick;
-        //UIEventListener.Get(emcancel).onClick = emCancelClick;
 
         //to create the 42 days (buttons)
         for (int l = 0; l<42; ++l)
         {
-            days[l] = days[0] != null ?((GameObject)Instantiate(days[0].gameObject, Vector3.zero, Quaternion.identity)).GetComponent<UIButton>() : ((GameObject)Instantiate(Resources.Load("Caramel/Calendar/Day"), Vector3.zero, Quaternion.identity)).GetComponent<UIButton>();
-            days[l].transform.parent = grid.transform;
-            days[l].transform.localScale = Vector3.one;
-            //to give the event
-            UIEventListener.Get(days[l].gameObject).onClick = DayClick;
 
-            tempdayevent[l] = -1;
-            temppermonthevent[l] = -1;
+            days[l] = new Day (days[0] != null ? ((GameObject)Instantiate(days[0].day.gameObject, Vector3.zero, Quaternion.identity)).transform : ((GameObject)Instantiate(Resources.Load("Caramel/Calendar/Day"), Vector3.zero, Quaternion.identity)).transform );
+            days[l].day.parent = daysgrid.transform;
+            days[l].day.localScale = Vector3.one;
+
+            //to give the event
+            UIEventListener.Get(days[l].day.gameObject).onClick = DayClick;
         }
 
-
         //to align
-        grid.enabled = true;
-        
-        now = DateTime.Now;
+        daysgrid.enabled = true;
+
+        Common.events[0] = new List<Events>();
+        Common.events[1] = new List<Events>();
         
         memobg.SetActive(false);
         eventmenu.SetActive(false);
@@ -147,6 +116,7 @@ public class Calendar : MonoBehaviour {
     {
         FillDays();
         SetEvent();
+
         /* 哪一天
         switch ((int)new DateTime(now.Year, now.Month, 1).DayOfWeek)
         {
@@ -178,17 +148,17 @@ public class Calendar : MonoBehaviour {
     void FillDays()
     {
         //to fill the label
-        int daysinmonth = GetDaysInMonth(now), nowofweek = (int)new DateTime(now.Year, now.Month, 1).DayOfWeek, i;
+        int daysinmonth = GetDaysInMonth(Common.now), nowofweek = (int)new DateTime(Common.now.Year, Common.now.Month, 1).DayOfWeek, i;
 
-        topmonth.transform.Find("TopMonthLabel").GetComponent<UILabel>().text = now.Month.ToString();
+        topmonth.Find("TopMonthLabel").GetComponent<UILabel>().text = Common.now.Month.ToString();
 
-        nowfirstday = nowofweek;
         //to fill the label on days
+        nowfirstday = nowofweek;
         for (i = 0; i < daysinmonth; ++i)
         {
-            days[nowofweek + i].transform.Find("DayLabel").GetComponent<UILabel>().text = (i + 1).ToString();
-            days[nowofweek + i].transform.Find("DayLabel").GetComponent<UILabel>().color = thismonth;
-            days[nowofweek + i].GetComponent<UIButton>().defaultColor = noteventday;
+            days[nowofweek + i].label.text = (i + 1).ToString();
+            days[nowofweek + i].label.color = thismonth;
+            days[nowofweek + i].button.defaultColor = noteventday;
         }
 
         //after
@@ -196,82 +166,156 @@ public class Calendar : MonoBehaviour {
         nextfirstday = i + nowofweek;
         for (int j = i + nowofweek; j < 42; ++j)
         {
-            days[j].transform.Find("DayLabel").GetComponent<UILabel>().text = (k++).ToString();
-            days[j].transform.Find("DayLabel").GetComponent<UILabel>().color = othermonth;
-            days[j].GetComponent<UIButton>().defaultColor = noteventday;
+            days[j].label.text = (k++).ToString();
+            days[j].label.color = othermonth;
+            days[j].button.defaultColor = noteventday;
         }
 
-        k = now.Month != 1 ? GetDaysInMonth(new DateTime(now.Year, now.Month - 1, 1)) + 1 : GetDaysInMonth(new DateTime(now.Year - 1, 12, 1)) + 1;
+        k = Common.now.Month != 1 ? GetDaysInMonth(new DateTime(Common.now.Year, Common.now.Month - 1, 1)) + 1 : GetDaysInMonth(new DateTime(Common.now.Year - 1, 12, 1)) + 1;
 
         //before
         for (i = 0; i < nowofweek; ++i)
         {
-            days[i].transform.Find("DayLabel").GetComponent<UILabel>().text = (k + i - nowofweek).ToString();
-            days[i].transform.Find("DayLabel").GetComponent<UILabel>().color = othermonth;
-            days[i].GetComponent<UIButton>().defaultColor = noteventday;
+            days[i].label.text = (k + i - nowofweek).ToString();
+            days[i].label.color = othermonth;
+            days[i].button.defaultColor = noteventday;
         }
 
-        days[nowofweek + now.Day - 1].transform.Find("DayLabel").GetComponent<UILabel>().color = selected;
+        days[nowofweek + Common.now.Day - 1].label.color = selectedday;
     }
 
-    void SetEvent()
+    public void SetEvent()
     {
         int d;
 
         //to set dayevent
-        for (int i = 0; i <de.Count; ++i)
+        for (int i = 0; i < Common.events[0].Count; ++i)
         {
-            if (de[i].date[1] == now.Month)
+            if (Common.events[0][i].date[1] == Common.now.Month)
             {
                 //this month
-                days[nowfirstday + de[i].date[2] - 1].GetComponent<UIButton>().defaultColor = eventday;
-
-                tempdayevent[nowfirstday + de[i].date[2] - 1] = i;
+                days[nowfirstday + Common.events[0][i].date[2] - 1].button.defaultColor = eventday;
+                days[nowfirstday + Common.events[0][i].date[2] - 1].e[0] = i;
             }
-            else if (de[i].date[1] == now.Month - 1 && (d = de[i].date[2] - int.Parse(days[0].transform.Find("DayLabel").GetComponent<UILabel>().text)) >= 0)
+            else if (Common.events[0][i].date[1] == Common.now.Month - 1 && (d = Common.events[0][i].date[2] - int.Parse(days[0].label.text)) >= 0)
             {
-                days[d].GetComponent<UIButton>().defaultColor = eventday;
-                tempdayevent[d] = i;
+                days[d].button.defaultColor = eventday;
+                days[d].e[0] = i;
             }
-            else if (de[i].date[1] == now.Month + 1 && ( d = int.Parse(days[41].transform.Find("DayLabel").GetComponent<UILabel>().text) - de[i].date[2]) >= 0)
+            else if (Common.events[0][i].date[1] == Common.now.Month + 1 && ( d = int.Parse(days[41].label.text) - Common.events[0][i].date[2]) >= 0)
             {
-                days[41 - d].GetComponent<UIButton>().defaultColor = eventday;
-                tempdayevent[41 - d] = i;
+                days[41 - d].button.defaultColor = eventday;
+                days[41 - d].e[0] = i;
             }
         }
 
-        for(int i = 0; i<pme.Count; ++i)
+        for (int i = 0; i< Common.events[1].Count; ++i)
         {
-            if(pme[i].date[0] == now.Month)
+            if( (int.Parse(days[nextfirstday + 1].label.text) >= Common.events[1][i].date[2]) )
             {
                 //this month
-                days[nowfirstday + de[i].date[2] - 1].GetComponent<UIButton>().defaultColor = eventday;
+                days[nowfirstday + Common.events[1][i].date[2] - 1].button.defaultColor = eventday;
+                days[nowfirstday + Common.events[1][i].date[2] - 1].e[1] = i;
+            }
 
-                temppermonthevent[nowfirstday + pme[i].date[1] - 1] = i;
-            }
-            else if(pme[i].date[0] == now.Month - 1 && (d = pme[i].date[1] - int.Parse(days[0].transform.Find("DayLabel").GetComponent<UILabel>().text)) >= 0)
+            if(  ( d = Common.events[1][i].date[2] - int.Parse(days[0].label.text) ) >= 0  && Common.events[1][i].date[2] <= int.Parse(days[nowfirstday - 1].label.text))
             {
-                days[d].GetComponent<UIButton>().defaultColor = eventday;
-                temppermonthevent[d] = i;
+                //last month
             }
-            else if(pme[i].date[0] == now.Month + 1 && (d = int.Parse(days[41].transform.Find("DayLabel").GetComponent<UILabel>().text) - pme[i].date[1]) >= 0)
+            else if(Common.events[1][i].date[2] <= int.Parse(days[41].label.text))
             {
-                days[41 - d].GetComponent<UIButton>().defaultColor = eventday;
-                temppermonthevent[41 - d] = i;
+                d = nextfirstday + Common.events[1][i].date[2] - 1;
             }
+
+            days[d].button.defaultColor = eventday;
+            days[d].e[1] = i;
         }
     }
 
-    /*
-    void Setselectedday()
+    void LastmonthClick(GameObject go)
     {
-        days[(int)new DateTime(now.Year, now.Month, 1).DayOfWeek + now.Day - 1].transform.Find("DayLabel").GetComponent<UILabel>().color = selected;
+        Common.now = Common.now.Month != 1 ? new DateTime(Common.now.Year, Common.now.Month - 1, 1) : new DateTime(Common.now.Year - 1, 12, 1);
+        Start();
     }
-    */
+
+    void NextmonthClick(GameObject go)
+    {
+        Common.now = Common.now.Month != 12 ? new DateTime(Common.now.Year, Common.now.Month + 1, 1) : new DateTime(Common.now.Year + 1, 1, 1);
+        Start();
+    }
+
+    void NeweventClick(GameObject go)
+    {
+        eventmenu.SetActive(true);
+        eventmenu.SendMessage("Init");
+    }
+    
+    void DayClick(GameObject go)
+    {
+        //to call the memo
+        if (memobg.activeSelf == false)
+            memobg.SetActive(true);
+
+        //to restore the daylabel color
+        days[nowfirstday + Common.now.Day - 1].label.color = thismonth;
+
+        UILabel l = go.transform.Find("DayLabel").GetComponent<UILabel>();
+
+        while(memogrid.transform.childCount > 0)
+        {
+            DestroyImmediate(memogrid.transform.GetChild(0).gameObject);
+        }
+
+        //to get the month
+        if (l.color == thismonth || l.color == selectedday)
+        {
+            Common.now = new DateTime(Common.now.Year, Common.now.Month, int.Parse(l.text));
+            l.color = selectedday;
+        }
+        else if(l.color == othermonth)
+        {
+            int da = int.Parse(l.text), m;
+
+            if(da >= 1 && da <= 14)
+            {
+                //next month
+                m = Common.now.Month + 1;
+                Common.now = m != 13 ? new DateTime(Common.now.Year, m, da) : new DateTime(Common.now.Year + 1, 1, da);
+            }
+            else if(da >= 24 && da <= 31)
+            {
+                m = Common.now.Month - 1;
+                Common.now = m != 0 ? new DateTime(Common.now.Year, m, da) : new DateTime(Common.now.Year - 1, 12, da);
+            }
+            Start();
+        }
+
+        Transform t;
+
+        //to set memo
+        for(int j = 0; j<2; ++j)
+        {
+            if (days[nowfirstday + Common.now.Day - 1].e[j] != -1)
+            {
+                Events d = Common.events[0][days[nowfirstday + Common.now.Day - 1].e[j]];
+
+                for (int i = 0; i < d.title.Count; ++i)
+                {
+                    memogrid.AddChild(memogrid.GetChildList().Count == 0 ? t = ((GameObject)Instantiate(Resources.Load("Caramel/Calendar/MemoButton"), new Vector3(370f, 0f, 0f), Quaternion.identity)).transform : t = ((GameObject)Instantiate(memogrid.GetChild(0).gameObject, new Vector3(370f, 0f, 0f), Quaternion.identity)).transform);
+                    t.localScale = Vector3.one;
+                    t.Find("Memo").GetComponent<UILabel>().text = d.title[i] + '\n' + d.content[i] + "\n時間: " + d.from[i][0] + ':' + d.from[i][1];
+                }
+            }
+        }
+
+        memogrid.enabled = true;
+
+        //SetEvent();
+    }
 
     int GetDaysInMonth(DateTime dt)
     {
-        switch(dt.Month)
+        switch (dt.Month)
         {
             case 1:
             case 3:
@@ -290,184 +334,20 @@ public class Calendar : MonoBehaviour {
 
             case 2:
 
-                if((dt.Year % 100 == 0 && dt.Year % 400 == 0))
-                {
+                if ((dt.Year % 100 == 0 && dt.Year % 400 == 0))
                     return 29;
-                }
-                else if(dt.Year % 100 == 0)
-                {
+                else if (dt.Year % 100 == 0)
                     return 28;
-                }
-                else if(dt.Year % 4 == 0)
-                {
+                else if (dt.Year % 4 == 0)
                     return 29;
-                }
                 else
-                {
                     return 28;
-                }
         }
         return -1;
     }
 
-    void LastmonthClick(GameObject go)
-    {
-        now = now.Month != 1 ? new DateTime(now.Year, now.Month - 1, 1) : new DateTime(now.Year - 1, 12, 1);
-
-        Start();
-    }
-
-    void NextmonthClick(GameObject go)
-    {
-        now = now.Month != 12 ? new DateTime(now.Year, now.Month + 1, 1) : new DateTime(now.Year + 1, 1, 1);
-
-        Start();
-    }
-
-    void NeweventClick(GameObject go)
-    {
-        //to init
-        emyear.transform.Find("YearLabel").GetComponent<UILabel>().text = now.Year.ToString();
-        emmonth.transform.Find("MonthLabel").GetComponent<UILabel>().text = now.Month.ToString();
-        emday.transform.Find("DayLabel").GetComponent<UILabel>().text = now.Day.ToString();
-
-        eventmenu.SetActive(true);
-    }
-
-    void emNewClick(GameObject go)
-    {
-        int y = int.Parse(emyear.transform.Find("YearLabel").GetComponent<UILabel>().text);
-        int m = int.Parse(emmonth.transform.Find("MonthLabel").GetComponent<UILabel>().text);
-        int d = int.Parse(emday.transform.Find("DayLabel").GetComponent<UILabel>().text);
-        int i;
-        /*
-        if (de.Count == 0)
-        {
-            de.Add(new DayEvent(y, m, d).AddEvent(emtitle.text, emcontent.text, emap.text == "AM" ? int.Parse(emhour.text) : int.Parse(emhour.text) + 12, int.Parse(emminute.text)));
-            return;
-        }
-        */
-
-        for(i = 0; i<de.Count; ++i)
-        {
-            if (de[i].date[0] == y && de[i].date[1] == m && de[i].date[2] == d)
-            {
-                Debug.Log("found");
-                //found
-                de[i].AddEvent(emtitle.text, emcontent.text, emap.text == "AM" ? int.Parse(emhour.text) : int.Parse(emhour.text) + 12, int.Parse(emminute.text));
-                break;
-            }
-        }
-
-        if(i == de.Count)
-        {
-            //to create new dayevent
-            de.Add(new DayEvent(y, m, d).AddEvent(emtitle.text, emcontent.text, emap.text == "AM" ? int.Parse(emhour.text) : int.Parse(emhour.text) + 12, int.Parse(emminute.text)));
-        }
-
-        Debug.Log(Application.dataPath);
-
-        StreamWriter sw = new StreamWriter(Application.dataPath + '/' + filename + ".txt");
-        for(i = 0; i<de.Count; ++i)
-        {
-            sw.Write("date:\nyear: " + de[i].date[0] + " month: " + de[i].date[1] + " day: " + de[i].date[2] + '\n');
-            for(int j = 0; j<de[i].title.Count; ++j)
-            {
-                sw.Write(de[i].title[j] + ',' + de[i].content[j] + ", from: " + de[i].from[j][0] + de[i].from[j][1] + '\n');
-                sw.Flush();
-            }
-        }
-        sw.Close();
-
-        SetEvent();
-        emCancelClick(null);
-    }
-
-    void emCancelClick(GameObject go)
-    {
-        emtinput.value = null;
-        emcinput.value = null;
-
-        eventmenu.SetActive(false);
-    }
-
-    void DayClick(GameObject go)
-    {
-        //to call the memo
-        if (memobg.activeSelf == false)
-            memobg.SetActive(true);
-
-        //to restore the daylabel color
-        days[nowfirstday + now.Day - 1].transform.Find("DayLabel").GetComponent<UILabel>().color = thismonth;
-
-        UILabel l = go.transform.Find("DayLabel").GetComponent<UILabel>();
-        int m = -1;     //-1 => error
-
-        while(memogrid.transform.childCount > 0)
-        {
-            DestroyImmediate(memogrid.transform.GetChild(0).gameObject);
-        }
-
-        //to get the month
-        if (l.color == thismonth || l.color == selected)
-        {
-            m = now.Month;
-
-            now = new DateTime(now.Year, now.Month, int.Parse(l.text));
-
-            l.color = selected;
-
-            if (de.Count == 0 || tempdayevent[nowfirstday + now.Day - 1] == -1)
-                return;
-            
-            DayEvent d = de[tempdayevent[nowfirstday + now.Day - 1]];
-            Transform t;
-
-            Debug.Log("count in dayclick " + d.title.Count);
-
-            for (int i = 0; i< d.title.Count; ++i)
-            {
-                Debug.Log("??");
-                memogrid.AddChild(memogrid.GetChildList().Count == 0 ? t = ((GameObject)Instantiate(Resources.Load("Caramel/Calendar/MemoButton"), new Vector3(370f, 0f, 0f), Quaternion.identity)).transform : t = ((GameObject)Instantiate(memogrid.GetChild(0).gameObject, new Vector3(370f, 0f, 0f), Quaternion.identity)).transform);
-                t.localScale = Vector3.one;
-                t.Find("Memo").GetComponent<UILabel>().text = d.title[i] + d.content[i] + d.from[i][0] + d.from[i][1] + d.date[0] + d.date[1] + d.date[2] + '\n';
-            }
-
-            if(temppermonthevent[nowfirstday + now.Day - 1] != -1)
-            {
-                memogrid.AddChild(memogrid.GetChildList().Count == 0 ? t = ((GameObject)Instantiate(Resources.Load("Caramel/Calendar/MemoButton"), new Vector3(370f, 0f, 0f), Quaternion.identity)).transform : t = ((GameObject)Instantiate(memogrid.GetChild(0).gameObject, new Vector3(370f, 0f, 0f), Quaternion.identity)).transform);
-                t.localScale = Vector3.one;
-                t.Find("Memo").GetComponent<UILabel>().text = pme[temppermonthevent[nowfirstday + now.Day - 1]].title + pme[temppermonthevent[nowfirstday + now.Day - 1]].content + pme[temppermonthevent[nowfirstday + now.Day - 1]].from[0] + pme[temppermonthevent[nowfirstday + now.Day - 1]].from[1];
-            }
-
-            memogrid.enabled = true;
-        }
-        else if(l.color == othermonth)
-        {
-            Debug.Log("other month");
-
-            int d = int.Parse(l.text);
-
-            if(d >= 1 && d <= 14)
-            {
-                //next month
-                m = now.Month + 1;
-                now = m != 13 ? new DateTime(now.Year, m, d) : new DateTime(now.Year + 1, 1, d);
-            }
-            else if(d >= 24 && d <= 31)
-            {
-                m = now.Month - 1;
-                now = m != 0 ? new DateTime(now.Year, m, d) : new DateTime(now.Year - 1, 12, d);
-            }
-
-            Start();
-        }
-        
-        SetEvent();
-    }
-	
-	// Update is called once per frame
-	void Update ()
+    // Update is called once per frame
+    void Update ()
     {
 	
 	}
