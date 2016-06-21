@@ -52,12 +52,6 @@ public class Events
     public List<int[]> from = new List<int[]>(), to = new List<int[]>();
 }
 
-public static class Common
-{
-    public static DateTime now = DateTime.Now;
-    public static List<Events>[] events = new List<Events>[2];
-}
-
 public class Calendar : MonoBehaviour {
 
     //in the Background
@@ -116,33 +110,6 @@ public class Calendar : MonoBehaviour {
     {
         FillDays();
         SetEvent();
-
-        /* 哪一天
-        switch ((int)new DateTime(now.Year, now.Month, 1).DayOfWeek)
-        {
-            case 0:
-                Debug.Log("日");
-                break;
-            case 1:
-                Debug.Log("一");
-                break;
-            case 2:
-                Debug.Log("二");
-                break;
-            case 3:
-                Debug.Log("三");
-                break;
-            case 4:
-                Debug.Log("四");
-                break;
-            case 5:
-                Debug.Log("五");
-                break;
-            case 6:
-                Debug.Log("六");
-                break;
-        }
-        */
     }
 
     void FillDays()
@@ -345,6 +312,34 @@ public class Calendar : MonoBehaviour {
         }
         return -1;
     }
+
+
+    /* 哪一天
+    switch ((int)new DateTime(now.Year, now.Month, 1).DayOfWeek)
+    {
+        case 0:
+            Debug.Log("日");
+            break;
+        case 1:
+            Debug.Log("一");
+            break;
+        case 2:
+            Debug.Log("二");
+            break;
+        case 3:
+            Debug.Log("三");
+            break;
+        case 4:
+            Debug.Log("四");
+            break;
+        case 5:
+            Debug.Log("五");
+            break;
+        case 6:
+            Debug.Log("六");
+            break;
+    }
+    */
 
     // Update is called once per frame
     void Update ()

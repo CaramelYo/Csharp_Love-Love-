@@ -1,6 +1,15 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.IO;
+using System;
+using System.Collections.Generic;
+
+public static class Common
+{
+    public static DateTime now = DateTime.Now;
+    public static List<Events>[] events = new List<Events>[2];
+    public static string[] filename = new string[] { "DayEvents", "pme" };
+}
 
 public class EventMenu : MonoBehaviour
 {
@@ -8,8 +17,6 @@ public class EventMenu : MonoBehaviour
     GameObject emnew, emcancel, calendar;
     UILabel emtitle, emcontent, emap, emhour, emminute, emyear, emmonth, emday, emmode;
     UIInput emtinput, emcinput;
-
-    string[] filename = new string[] { "DayEvents", "pme" };
 
     void Awake ()
     {
@@ -40,7 +47,7 @@ public class EventMenu : MonoBehaviour
         int y = int.Parse(emyear.text);
         int m = int.Parse(emmonth.text);
         int d = int.Parse(emday.text);
-        int i, j = -1;
+        int i= 0, j = -1;
         //Common.events[0]
         switch (emmode.text)
         {
@@ -110,29 +117,35 @@ public class EventMenu : MonoBehaviour
                 break;
         }
 
-        for (i = 0; i < Common.events[j].Count; ++i)
+
+        switch (j)
         {
-            switch(j)
-            {
-                case 0:
-                    if (Common.events[0][i].date[0] == y && Common.events[j][i].date[1] == m && Common.events[j][i].date[2] == d)
+            case 0:
+                for (i = 0; i < Common.events[j].Count; ++i)
+                {
+                    if (Common.events[j][i].date[0] == y && Common.events[j][i].date[1] == m && Common.events[j][i].date[2] == d)
                     {
                         //found
                         Common.events[j][i].AddEvent(emtitle.text, emcontent.text, emap.text == "AM" ? int.Parse(emhour.text) : int.Parse(emhour.text) + 12, int.Parse(emminute.text));
+                        Debug.Log("event " + j + " count" + Common.events[j].Count);
                         break;
                     }
+                }
 
-                    break;
+                break;
 
-                case 1:
+            case 1:
+                for (i = 0; i < Common.events[j].Count; ++i)
+                {
                     if (Common.events[j][i].date[2] == d)
                     {
                         //found
                         Common.events[j][i].AddEvent(emtitle.text, emcontent.text, emap.text == "AM" ? int.Parse(emhour.text) : int.Parse(emhour.text) + 12, int.Parse(emminute.text));
+                        Debug.Log("event " + j + " count" + Common.events[j].Count);
                         break;
                     }
-                    break;
-            }
+                }
+                break;
         }
 
         if (i == Common.events[j].Count)
@@ -149,28 +162,24 @@ public class EventMenu : MonoBehaviour
             }
         }
 
-        StreamWriter sw = new StreamWriter(Application.dataPath + '/' + filename[j] + ".txt");
-        for (i = 0; i < Common.events[j].Count; ++i)
+        //to save file
+
+        for (j = 0; j < 2; ++j)
         {
-            switch(j)
-            {
-                case 0:
-                    sw.Write("date:\nyear: " + Common.events[j][i].date[0] + " month: " + Common.events[j][i].date[1] + " day: " + Common.events[j][i].date[2] + '\n');
-                    break;
-                case 1:
-                    sw.Write("day: " + Common.events[j][i].date[2] + '\n');
-                    break;
-            }
+            StreamWriter sw = new StreamWriter(Application.dataPath + '/' + Common.filename[j] + ".txt");
 
-            for (int k = 0; k < Common.events[j][i].title.Count; ++k)
+            for (i = 0; i < Common.events[j].Count; ++i)
             {
-                sw.Write(Common.events[j][i].title[k] + ',' + Common.events[j][i].content[k] + ", from: " + Common.events[j][i].from[k][0] + Common.events[j][i].from[k][1] + '\n');
-                sw.Flush();
+                sw.Write(Common.events[j][i].date[0] + "," + Common.events[j][i].date[1] + "," + Common.events[j][i].date[2] + ',');
+
+                for (int k = 0; k < Common.events[j][i].title.Count; ++k)
+                {
+                    sw.Write(Common.events[j][i].title[k] + "," + Common.events[j][i].content[k] + "," + Common.events[j][i].from[k][0] + "," + Common.events[j][i].from[k][1] + '\n');
+                    sw.Flush();
+                }
             }
+            sw.Close();
         }
-        sw.Close();
-
-
 
         calendar.SendMessage("SetEvent");
         emCancelClick(null);
