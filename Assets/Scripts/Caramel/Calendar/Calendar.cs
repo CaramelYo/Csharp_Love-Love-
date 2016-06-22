@@ -1,56 +1,9 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.SceneManagement;
 using System.IO;
 using System;
-
-public class Day
-{
-    public Day(Transform d)
-    {
-        day = d;
-        label = day.Find("DayLabel").GetComponent<UILabel>();
-        button = day.GetComponent<UIButton>();
-        e[0] = -1;
-        e[1] = -1;
-    }
-
-    public Transform day;
-    public UILabel label;
-    public UIButton button;
-    public int[] e = new int[2];
-}
-
-public class Events
-{
-    public Events(int ny, int nm, int nd, string t, string c, int fh, int fm)
-    {
-        date[0] = ny;
-        date[1] = nm;
-        date[2] = nd;
-        AddEvent(t, c, fh, fm);
-    }
-
-    public Events(int d, string t, string c, int fh, int fm)
-    {
-        date[2] = d;
-        AddEvent(t, c, fh, fm);
-    }
-
-    public void AddEvent(string t, string c, int fh, int fm)
-    {
-        title.Add(t);
-        content.Add(c);
-
-        from.Add(new int[2]);
-        from[from.Count - 1][0] = fh;
-        from[from.Count - 1][1] = fm;
-    }
-
-    public int[] date = new int[3];
-    public List<string> title = new List<string>(), content = new List<string>();
-    public List<int[]> from = new List<int[]>(), to = new List<int[]>();
-}
 
 public class Calendar : MonoBehaviour {
 
@@ -59,7 +12,7 @@ public class Calendar : MonoBehaviour {
     Day[] days = new Day[42];
     UIGrid daysgrid, memogrid;
     GameObject memobg, eventmenu;
-    Transform topmonth, lastmonth, nextmonth, newevent;
+    Transform topmonth, lastmonth, nextmonth, newevent, back;
     Color thismonth = new Color(0f, 0f, 0f, 1f), othermonth = new Color(.7f, .7f, .7f, 1f), selectedday = new Color(0f, 0f, 1f, 1f), eventday = new Color(.8f, .8f, .4f, 1f), noteventday = new Color(1f, 1f, 1f, 1f);
     
     //int[] nowdate = new int[3];
@@ -98,9 +51,6 @@ public class Calendar : MonoBehaviour {
 
         //to align
         daysgrid.enabled = true;
-
-        Common.events[0] = new List<Events>();
-        Common.events[1] = new List<Events>();
         
         memobg.SetActive(false);
         eventmenu.SetActive(false);
@@ -121,6 +71,7 @@ public class Calendar : MonoBehaviour {
 
         //to fill the label on days
         nowfirstday = nowofweek;
+        Debug.Log("now = " + nowfirstday);
         for (i = 0; i < daysinmonth; ++i)
         {
             days[nowofweek + i].label.text = (i + 1).ToString();
@@ -131,6 +82,7 @@ public class Calendar : MonoBehaviour {
         //after
         int k = 1;
         nextfirstday = i + nowofweek;
+        Debug.Log("next = : " + nextfirstday);
         for (int j = i + nowofweek; j < 42; ++j)
         {
             days[j].label.text = (k++).ToString();
@@ -158,7 +110,7 @@ public class Calendar : MonoBehaviour {
         //to set dayevent
         for (int i = 0; i < Common.events[0].Count; ++i)
         {
-            if (Common.events[0][i].date[1] == Common.now.Month)
+            if (Common.events[0][i].date[0] == Common.now.Year && Common.events[0][i].date[1] == Common.now.Month && Common.events[0][i].date[2] <= int.Parse(days[nextfirstday - 1].label.text))
             {
                 //this month
                 days[nowfirstday + Common.events[0][i].date[2] - 1].button.defaultColor = eventday;
@@ -175,39 +127,64 @@ public class Calendar : MonoBehaviour {
                 days[41 - d].e[0] = i;
             }
         }
-
+        
+        //pme
         for (int i = 0; i< Common.events[1].Count; ++i)
         {
-            if( (int.Parse(days[nextfirstday + 1].label.text) >= Common.events[1][i].date[2]) )
+            if( (int.Parse(days[nextfirstday - 1].label.text) >= Common.events[1][i].date[2]) )
             {
                 //this month
+                Debug.Log("this month");
                 days[nowfirstday + Common.events[1][i].date[2] - 1].button.defaultColor = eventday;
                 days[nowfirstday + Common.events[1][i].date[2] - 1].e[1] = i;
             }
 
-            if(  ( d = Common.events[1][i].date[2] - int.Parse(days[0].label.text) ) >= 0  && Common.events[1][i].date[2] <= int.Parse(days[nowfirstday - 1].label.text))
+            if(  ( d = Common.events[1][i].date[2] - int.Parse(days[0].label.text) ) >= 0  && nowfirstday!= 0 && Common.events[1][i].date[2] <= int.Parse(days[nowfirstday - 1].label.text))
             {
                 //last month
+                days[d].button.defaultColor = eventday;
+                days[d].e[1] = i;
             }
             else if(Common.events[1][i].date[2] <= int.Parse(days[41].label.text))
             {
                 d = nextfirstday + Common.events[1][i].date[2] - 1;
+                days[d].button.defaultColor = eventday;
+                days[d].e[1] = i;
             }
+        }
 
-            days[d].button.defaultColor = eventday;
-            days[d].e[1] = i;
+        //pye
+        for (int i = 0; i < Common.events[2].Count; ++i)
+        { 
+            if(Common.events[2][i].date[1] == Common.now.Month && Common.events[2][i].date[2] <= int.Parse(days[nextfirstday - 1].label.text))
+            {
+                days[nowfirstday + Common.events[2][i].date[2] - 1].button.defaultColor = eventday;
+                days[nowfirstday + Common.events[2][i].date[2] - 1].e[i] = i;
+            }
+            else if (Common.events[2][i].date[1] == Common.now.Month - 1 && (d = Common.events[2][i].date[2] - int.Parse(days[0].label.text)) >= 0)
+            {
+                days[d].button.defaultColor = eventday;
+                days[d].e[0] = i;
+            }
+            else if (Common.events[2][i].date[1] == Common.now.Month + 1 && (d = int.Parse(days[41].label.text) - Common.events[0][i].date[2]) >= 0)
+            {
+                days[41 - d].button.defaultColor = eventday;
+                days[41 - d].e[0] = i;
+            }
         }
     }
 
     void LastmonthClick(GameObject go)
     {
         Common.now = Common.now.Month != 1 ? new DateTime(Common.now.Year, Common.now.Month - 1, 1) : new DateTime(Common.now.Year - 1, 12, 1);
+        refreshdaye();
         Start();
     }
 
     void NextmonthClick(GameObject go)
     {
         Common.now = Common.now.Month != 12 ? new DateTime(Common.now.Year, Common.now.Month + 1, 1) : new DateTime(Common.now.Year + 1, 1, 1);
+        refreshdaye();
         Start();
     }
 
@@ -216,7 +193,7 @@ public class Calendar : MonoBehaviour {
         eventmenu.SetActive(true);
         eventmenu.SendMessage("Init");
     }
-    
+
     void DayClick(GameObject go)
     {
         //to call the memo
@@ -264,7 +241,7 @@ public class Calendar : MonoBehaviour {
         {
             if (days[nowfirstday + Common.now.Day - 1].e[j] != -1)
             {
-                Events d = Common.events[0][days[nowfirstday + Common.now.Day - 1].e[j]];
+                Events d = Common.events[j][days[nowfirstday + Common.now.Day - 1].e[j]];
 
                 for (int i = 0; i < d.title.Count; ++i)
                 {
@@ -278,6 +255,15 @@ public class Calendar : MonoBehaviour {
         memogrid.enabled = true;
 
         //SetEvent();
+    }
+
+    void refreshdaye()
+    {
+        for(int i = 0; i<42; ++i)
+        {
+            days[i].e[0] = -1;
+            days[i].e[1] = -1;
+        }
     }
 
     int GetDaysInMonth(DateTime dt)

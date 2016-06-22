@@ -1,15 +1,9 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.IO;
+using System.Text;
 using System;
 using System.Collections.Generic;
-
-public static class Common
-{
-    public static DateTime now = DateTime.Now;
-    public static List<Events>[] events = new List<Events>[2];
-    public static string[] filename = new string[] { "DayEvents", "pme" };
-}
 
 public class EventMenu : MonoBehaviour
 {
@@ -48,76 +42,20 @@ public class EventMenu : MonoBehaviour
         int m = int.Parse(emmonth.text);
         int d = int.Parse(emday.text);
         int i= 0, j = -1;
-        //Common.events[0]
+
         switch (emmode.text)
         {
             case "今日事件":
-                /*
-                for (i = 0; i < Events.de.Count; ++i)
-                {
-                    if (Events.de[i].date[0] == y && Events.de[i].date[1] == m && Events.de[i].date[2] == d)
-                    {
-                        //found
-                        Events.de[i].AddEvent(emtitle.text, emcontent.text, emap.text == "AM" ? int.Parse(emhour.text) : int.Parse(emhour.text) + 12, int.Parse(emminute.text));
-                        break;
-                    }
-                }
-
-                if (i == Events.de.Count)
-                {
-                    //to create new dayevent
-                    Events.de.Add(new DayEvent(y, m, d, emtitle.text, emcontent.text, emap.text == "AM" ? int.Parse(emhour.text) : int.Parse(emhour.text) + 12, int.Parse(emminute.text)));
-                }
-
-                StreamWriter sw = new StreamWriter(Application.dataPath + '/' + dayfile + ".txt");
-                for (i = 0; i < Events.de.Count; ++i)
-                {
-                    sw.Write("date:\nyear: " + Events.de[i].date[0] + " month: " + Events.de[i].date[1] + " day: " + Events.de[i].date[2] + '\n');
-                    for (int j = 0; j < Events.de[i].title.Count; ++j)
-                    {
-                        sw.Write(Events.de[i].title[j] + ',' + Events.de[i].content[j] + ", from: " + Events.de[i].from[j][0] + Events.de[i].from[j][1] + '\n');
-                        sw.Flush();
-                    }
-                }
-                sw.Close();
-                */
                 j = 0;
                 break;
             case "每月事件":
-                /*
-                for (i = 0; i < Events.pme.Count; ++i)
-                {
-                    if (Events.pme[i].date == d)
-                    {
-                        //found
-                        Events.pme[i].AddEvent(emtitle.text, emcontent.text, emap.text == "AM" ? int.Parse(emhour.text) : int.Parse(emhour.text) + 12, int.Parse(emminute.text));
-                        break;
-                    }
-                }
-
-                if (i == Events.pme.Count)
-                {
-                    //to create new pme
-                    Events.pme.Add(new PerMonthEvent(d, emtitle.text, emcontent.text, emap.text == "AM" ? int.Parse(emhour.text) : int.Parse(emhour.text) + 12, int.Parse(emminute.text)));
-                }
-
-                sw = new StreamWriter(Application.dataPath + '/' + pmefile + ".txt");
-                for (i = 0; i < Events.pme.Count; ++i)
-                {
-                    sw.Write(Events.pme[i].date + '\n');
-                    for (int j = 0; j < Events.pme[i].title.Count; ++j)
-                    {
-                        sw.Write(Events.pme[i].title[j] + ',' + Events.pme[i].content[j] + ", from: " + Events.pme[i].from[j][0] + Events.pme[i].from[j][1] + '\n');
-                        sw.Flush();
-                    }
-                }
-                sw.Close();
-                */
                 j = 1;
                 break;
+            case "每年事件":
+                j = 2;
+                break;
         }
-
-
+        
         switch (j)
         {
             case 0:
@@ -127,7 +65,6 @@ public class EventMenu : MonoBehaviour
                     {
                         //found
                         Common.events[j][i].AddEvent(emtitle.text, emcontent.text, emap.text == "AM" ? int.Parse(emhour.text) : int.Parse(emhour.text) + 12, int.Parse(emminute.text));
-                        Debug.Log("event " + j + " count" + Common.events[j].Count);
                         break;
                     }
                 }
@@ -141,8 +78,18 @@ public class EventMenu : MonoBehaviour
                     {
                         //found
                         Common.events[j][i].AddEvent(emtitle.text, emcontent.text, emap.text == "AM" ? int.Parse(emhour.text) : int.Parse(emhour.text) + 12, int.Parse(emminute.text));
-                        Debug.Log("event " + j + " count" + Common.events[j].Count);
                         break;
+                    }
+                }
+                break;
+
+            case 2:
+                for(i = 0; i<Common.events[j].Count; ++i)
+                {
+                    if(Common.events[j][i].date[1] == m && Common.events[j][i].date[2] == d)
+                    {
+                        //found
+                        Common.events[j][i].AddEvent(emtitle.text, emcontent.text, emap.text == "AM" ? int.Parse(emhour.text) : int.Parse(emhour.text) + 12, int.Parse(emminute.text));
                     }
                 }
                 break;
@@ -159,27 +106,37 @@ public class EventMenu : MonoBehaviour
                 case 1:
                     Common.events[j].Add(new Events(d, emtitle.text, emcontent.text, emap.text == "AM" ? int.Parse(emhour.text) : int.Parse(emhour.text) + 12, int.Parse(emminute.text)));
                     break;
+                case 2:
+                    Common.events[j].Add(new Events(m, d, emtitle.text, emcontent.text, emap.text == "AM" ? int.Parse(emhour.text) : int.Parse(emhour.text) + 12, int.Parse(emminute.text)));
+                    break;
             }
         }
 
-        //to save file
+        StreamWriter sw = new StreamWriter(Application.dataPath + '/' + Common.filename[j] + ".txt", false,  Encoding.UTF8);
 
-        for (j = 0; j < 2; ++j)
+        for (i = 0; i < Common.events[j].Count; ++i)
         {
-            StreamWriter sw = new StreamWriter(Application.dataPath + '/' + Common.filename[j] + ".txt");
-
-            for (i = 0; i < Common.events[j].Count; ++i)
+            switch(j)
             {
-                sw.Write(Common.events[j][i].date[0] + "," + Common.events[j][i].date[1] + "," + Common.events[j][i].date[2] + ',');
-
-                for (int k = 0; k < Common.events[j][i].title.Count; ++k)
-                {
-                    sw.Write(Common.events[j][i].title[k] + "," + Common.events[j][i].content[k] + "," + Common.events[j][i].from[k][0] + "," + Common.events[j][i].from[k][1] + '\n');
-                    sw.Flush();
-                }
+                case 0:
+                    sw.Write(Common.events[0][i].date[0] + "," + Common.events[0][i].date[1] + "," + Common.events[0][i].date[2] + ',');
+                    break;
+                case 1:
+                    sw.Write(Common.events[1][i].date[2] + ",");
+                    break;
+                case 2:
+                    sw.Write(Common.events[2][i].date[1] + "," + Common.events[2][i].date[2] + ",");
+                    break;
             }
-            sw.Close();
+
+            for (int k = 0; k < Common.events[j][i].title.Count; ++k)
+            {
+                sw.Write(Common.events[j][i].title[k] + "," + Common.events[j][i].content[k] + "," + Common.events[j][i].from[k][0] + "," + Common.events[j][i].from[k][1] + ',');
+            }
+            sw.Write('\n');
+            sw.Flush();
         }
+        sw.Close();
 
         calendar.SendMessage("SetEvent");
         emCancelClick(null);
@@ -199,10 +156,4 @@ public class EventMenu : MonoBehaviour
         emmonth.text = Common.now.Month.ToString();
         emday.text = Common.now.Day.ToString();
     }
-
-    // Update is called once per frame
-    void Update ()
-    {
-	
-	}
 }
