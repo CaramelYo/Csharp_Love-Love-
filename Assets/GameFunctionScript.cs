@@ -16,7 +16,7 @@ public class GameFunctionScript : MonoBehaviour {
 	public void ShowNotification(){
 		using (AndroidJavaClass unity = new AndroidJavaClass("com.example.diclab_cheng.unity_notification_plugin.LocalNotificationActivity"))
 		{
-			unity.CallStatic("Show", 5, "這是標題", "這是內文", "black_heart96");
+			unity.CallStatic("Show", 60, "這是標題", "這是內文", "black_heart96");
 		}
 	}
 }
