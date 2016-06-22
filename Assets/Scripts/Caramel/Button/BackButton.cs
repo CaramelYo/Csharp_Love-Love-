@@ -7,7 +7,7 @@ public class BackButton : MonoBehaviour
     //in the Back
     void Awake()
     {
-        UIEventListener.Get(gameObject).onClick = BackClick;
+        UIEventListener.Get(gameObject).onClick += BackClick;
     }
 
     void BackClick(GameObject go)

@@ -18,14 +18,14 @@ public class Guide : MonoBehaviour
         mcday = transform.Find("DayInput/DayDetail").GetComponent<UILabel>();
 
         yes = transform.Find("Yes").gameObject;
-        UIEventListener.Get(yes).onClick = yesClick;
+        UIEventListener.Get(yes).onClick += yesClick;
     }
 
     void yesClick(GameObject go)
     {
         try
         {
-            StreamWriter sw = new StreamWriter(Application.dataPath + '/' + Common.filename[2] + ".txt", false, Encoding.UTF8);
+            StreamWriter sw = new StreamWriter(Application.persistentDataPath + '/' + Common.filename[3] + ".txt", false, Encoding.UTF8);
 
             sw.Write(uname.text + ',' + gname.text + ',' + int.Parse(mcmonth.text) + ',' + int.Parse(mcday.text));
             sw.Close();

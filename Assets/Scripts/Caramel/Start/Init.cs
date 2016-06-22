@@ -7,15 +7,9 @@ using System.Collections;
 
 public class Init : MonoBehaviour {
     //in the Background
-    
-    void Awake()
+    void OnClick()
     {
-        UIEventListener.Get(gameObject).onClick = BClick;
-    }
-
-    void BClick(GameObject go)
-    {
-        FileInfo f = new FileInfo(Application.dataPath + '/' + Common.filename[0] + ".txt");
+        FileInfo f = new FileInfo(Application.persistentDataPath + '/' + Common.filename[0] + ".txt");
         StreamReader sr = null;
         StreamWriter sw = null;
         string[] split = null;
@@ -43,55 +37,24 @@ public class Init : MonoBehaviour {
         }
         else
         {
-            sw = new StreamWriter(Application.dataPath + '/' + Common.filename[0] + ".txt", false, Encoding.UTF8);
+            sw = new StreamWriter(Application.persistentDataPath + '/' + Common.filename[0] + ".txt", false, Encoding.UTF8);
             Common.events[0] = new List<Events>();
             sw.Close();
         }
 
         //to load pme
-        f = new FileInfo(Application.dataPath + '/' + Common.filename[1] + ".txt");
-
-        if(f.Exists)
-        {
-            sr = f.OpenText();
-            split = sr.ReadToEnd().Split(',');
-
-            Common.events[1] = new List<Events>();
-
-            for(int i = 0; i<split.Length - 1;)
-            {
-                Common.events[1].Add(new Events(int.Parse(split[i++]), split[i++], split[i++], int.Parse(split[i++]), int.Parse(split[i++])));
-
-                int id = Common.events[1].Count;
-                while(split[i][0] != '\n')
-                {
-                    Common.events[1][id - 1].AddEvent(split[i++], split[i++], int.Parse(split[i++]), int.Parse(split[i++]));
-                }
-            }
-
-            sr.Close();
-        }
-        else
-        {
-            sw = new StreamWriter(Application.dataPath + '/' + Common.filename[1] + ".txt", false, Encoding.UTF8);
-            Common.events[1] = new List<Events>();
-            sw.Close();
-        }
-
-        
-        //to load pye
-        f = new FileInfo(Application.dataPath + '/' + Common.filename[3] + ".txt");
+        f = new FileInfo(Application.persistentDataPath + '/' + Common.filename[1] + ".txt");
 
         if (f.Exists)
         {
             sr = f.OpenText();
             split = sr.ReadToEnd().Split(',');
 
-            Common.events[2] = new List<Events>();
+            Common.events[1] = new List<Events>();
 
             for (int i = 0; i < split.Length - 1;)
             {
-                Common.events[2].Add(new Events(int.Parse(split[i++]), int.Parse(split[i++]), split[i++], split[i++], int.Parse(split[i++]), int.Parse(split[i++])));
+                Common.events[1].Add(new Events(int.Parse(split[i++]), split[i++], split[i++], int.Parse(split[i++]), int.Parse(split[i++])));
 
                 int id = Common.events[1].Count;
                 while (split[i][0] != '\n')
@@ -104,20 +67,53 @@ public class Init : MonoBehaviour {
         }
         else
         {
-            sw = new StreamWriter(Application.dataPath + '/' + Common.filename[3] + ".txt", false, Encoding.UTF8);
-            Common.events[2] = new List<Events>();
+            sw = new StreamWriter(Application.persistentDataPath + '/' + Common.filename[1] + ".txt", false, Encoding.UTF8);
+            Common.events[1] = new List<Events>();
             sw.Close();
         }
-        
 
-        //to load user
-        f = new FileInfo(Application.dataPath + '/' + Common.filename[2] + ".txt");
 
-        if(f.Exists)
+        //to load pye
+        f = new FileInfo(Application.persistentDataPath + '/' + Common.filename[2] + ".txt");
+
+        if (f.Exists)
         {
             sr = f.OpenText();
             split = sr.ReadToEnd().Split(',');
+
+            Common.events[2] = new List<Events>();
+
+            for (int i = 0; i < split.Length - 1;)
+            {
+                Common.events[2].Add(new Events(int.Parse(split[i++]), int.Parse(split[i++]), split[i++], split[i++], int.Parse(split[i++]), int.Parse(split[i++])));
+
+                int id = Common.events[2].Count;
+                while (split[i][0] != '\n')
+                {
+                    Common.events[2][id - 1].AddEvent(split[i++], split[i++], int.Parse(split[i++]), int.Parse(split[i++]));
+                }
+            }
+
+            sr.Close();
+        }
+        else
+        {
+            sw = new StreamWriter(Application.persistentDataPath + '/' + Common.filename[2] + ".txt", false, Encoding.UTF8);
+            Common.events[2] = new List<Events>();
+            sw.Close();
+        }
+
+        //to load user
+        f = new FileInfo(Application.persistentDataPath + '/' + Common.filename[3] + ".txt");
+
+        if (f.Exists)
+        {
+            sr = f.OpenText();
+            split = sr.ReadToEnd().Split(',');
+            Debug.Log(sr.ReadToEnd());
+            Debug.Log(split[0]);
             Common.username = split[0];
+            Debug.Log(split[1]);
             Common.girlname = split[1];
             Common.mcdate[0] = int.Parse(split[2]);
             Common.mcdate[1] = int.Parse(split[3]);
@@ -129,7 +125,7 @@ public class Init : MonoBehaviour {
             //first use
             SceneManager.LoadScene("Guide");
         }
-        
+
         SceneManager.LoadScene("MainMenu");
     }
 }

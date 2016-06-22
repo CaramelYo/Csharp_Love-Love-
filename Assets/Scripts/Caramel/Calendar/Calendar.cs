@@ -25,15 +25,15 @@ public class Calendar : MonoBehaviour {
         memogrid = memobg.transform.Find("MemoGrid").GetComponent<UIGrid>();
 
         newevent = transform.Find("NewEvent");
-        UIEventListener.Get(newevent.gameObject).onClick = NeweventClick;
+        UIEventListener.Get(newevent.gameObject).onClick += NeweventClick;
 
         daysgrid = transform.Find("Days").GetComponent<UIGrid>();
 
         topmonth = transform.Find("TopMonth");
         lastmonth = topmonth.Find("LastMonth");
         nextmonth = topmonth.Find("NextMonth");
-        UIEventListener.Get(lastmonth.gameObject).onClick = LastmonthClick;
-        UIEventListener.Get(nextmonth.gameObject).onClick = NextmonthClick;
+        UIEventListener.Get(lastmonth.gameObject).onClick += LastmonthClick;
+        UIEventListener.Get(nextmonth.gameObject).onClick += NextmonthClick;
 
         eventmenu = transform.Find("EventMenu").gameObject;
 
@@ -46,7 +46,7 @@ public class Calendar : MonoBehaviour {
             days[l].day.localScale = Vector3.one;
 
             //to give the event
-            UIEventListener.Get(days[l].day.gameObject).onClick = DayClick;
+            UIEventListener.Get(days[l].day.gameObject).onClick += DayClick;
         }
 
         //to align
@@ -71,7 +71,6 @@ public class Calendar : MonoBehaviour {
 
         //to fill the label on days
         nowfirstday = nowofweek;
-        Debug.Log("now = " + nowfirstday);
         for (i = 0; i < daysinmonth; ++i)
         {
             days[nowofweek + i].label.text = (i + 1).ToString();
@@ -82,7 +81,6 @@ public class Calendar : MonoBehaviour {
         //after
         int k = 1;
         nextfirstday = i + nowofweek;
-        Debug.Log("next = : " + nextfirstday);
         for (int j = i + nowofweek; j < 42; ++j)
         {
             days[j].label.text = (k++).ToString();
@@ -134,7 +132,6 @@ public class Calendar : MonoBehaviour {
             if( (int.Parse(days[nextfirstday - 1].label.text) >= Common.events[1][i].date[2]) )
             {
                 //this month
-                Debug.Log("this month");
                 days[nowfirstday + Common.events[1][i].date[2] - 1].button.defaultColor = eventday;
                 days[nowfirstday + Common.events[1][i].date[2] - 1].e[1] = i;
             }
@@ -159,17 +156,17 @@ public class Calendar : MonoBehaviour {
             if(Common.events[2][i].date[1] == Common.now.Month && Common.events[2][i].date[2] <= int.Parse(days[nextfirstday - 1].label.text))
             {
                 days[nowfirstday + Common.events[2][i].date[2] - 1].button.defaultColor = eventday;
-                days[nowfirstday + Common.events[2][i].date[2] - 1].e[i] = i;
+                days[nowfirstday + Common.events[2][i].date[2] - 1].e[2] = i;
             }
             else if (Common.events[2][i].date[1] == Common.now.Month - 1 && (d = Common.events[2][i].date[2] - int.Parse(days[0].label.text)) >= 0)
             {
                 days[d].button.defaultColor = eventday;
-                days[d].e[0] = i;
+                days[d].e[2] = i;
             }
-            else if (Common.events[2][i].date[1] == Common.now.Month + 1 && (d = int.Parse(days[41].label.text) - Common.events[0][i].date[2]) >= 0)
+            else if (Common.events[2][i].date[1] == Common.now.Month + 1 && (d = int.Parse(days[41].label.text) - Common.events[2][i].date[2]) >= 0)
             {
                 days[41 - d].button.defaultColor = eventday;
-                days[41 - d].e[0] = i;
+                days[41 - d].e[2] = i;
             }
         }
     }
@@ -237,7 +234,7 @@ public class Calendar : MonoBehaviour {
         Transform t;
 
         //to set memo
-        for(int j = 0; j<2; ++j)
+        for(int j = 0; j<3; ++j)
         {
             if (days[nowfirstday + Common.now.Day - 1].e[j] != -1)
             {
@@ -263,6 +260,7 @@ public class Calendar : MonoBehaviour {
         {
             days[i].e[0] = -1;
             days[i].e[1] = -1;
+            days[i].e[2] = -1;
         }
     }
 

@@ -32,8 +32,8 @@ public class EventMenu : MonoBehaviour
         //UIEventListener.Get(emyear).onClick = emYearClick;
         //UIEventListener.Get(emmonth).onClick = emMonthClick;
         //UIEventListener.Get(emday).onClick = emDayClick;
-        UIEventListener.Get(emnew).onClick = emNewClick;
-        UIEventListener.Get(emcancel).onClick = emCancelClick;
+        UIEventListener.Get(emnew).onClick += emNewClick;
+        UIEventListener.Get(emcancel).onClick += emCancelClick;
     }
 
     void emNewClick(GameObject go)

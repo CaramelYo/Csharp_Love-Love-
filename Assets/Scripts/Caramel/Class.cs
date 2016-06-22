@@ -7,7 +7,7 @@ public static class Common
 {
     public static DateTime now = DateTime.Now;
     public static List<Events>[] events = new List<Events>[3];
-    public static string[] filename = new string[] { "DayEvents", "pme", "User", "pye" };
+    public static string[] filename = new string[] { "DayEvents", "pme", "pye", "User" };
     public static string username = null, girlname = null;
     public static int[] mcdate = new int[2];
 }
@@ -21,12 +21,13 @@ public class Day
         button = day.GetComponent<UIButton>();
         e[0] = -1;
         e[1] = -1;
+        e[2] = -1;
     }
 
     public Transform day;
     public UILabel label;
     public UIButton button;
-    public int[] e = new int[2];
+    public int[] e = new int[3];
 }
 
 public class Events

@@ -7,7 +7,7 @@ public class CancleButton : MonoBehaviour
 
     void Awake()
     {
-        UIEventListener.Get(gameObject).onClick = CancleClick;
+        UIEventListener.Get(gameObject).onClick += CancleClick;
         errorwindow = transform.parent;
     }
 

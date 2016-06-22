@@ -13,7 +13,7 @@ public class MainMenu : MonoBehaviour {
     void Awake()
     {
         calendar = transform.Find("Calendar");
-        UIEventListener.Get(calendar.gameObject).onClick = calendarClick;
+        UIEventListener.Get(calendar.gameObject).onClick += calendarClick;
 
         title = transform.Find("Title").GetComponent<UILabel>();
         tipwindow = transform.Find("TipWindow").gameObject;
@@ -34,6 +34,16 @@ public class MainMenu : MonoBehaviour {
         Common.now = DateTime.Now;
 
         string tip = null;
+
+        //mc
+        if (Common.mcdate[0] == Common.now.Month && (Common.now.Day - Common.mcdate[1]) > 25)
+        {
+            tip += "MC快來囉~1\n";
+        }
+        else if(Common.mcdate[0] == Common.now.Month-1 && (Common.now.Day - Common.mcdate[1] + 30) > 25)
+        {
+            tip += "MC快來囉~2\n";
+        }
 
         //dayevent
         for(int i = 0; i<Common.events[0].Count; ++i)
@@ -93,19 +103,22 @@ public class MainMenu : MonoBehaviour {
             }
         }
 
+        //pye
         for (int i = 0; i < Common.events[2].Count; ++i)
         {
+            Debug.Log("pye11");
             Events e = Common.events[2][i];
-            if (e.date[1] == Common.now.Day && e.date[2] == Common.now.Day)
+            if (e.date[1] == Common.now.Month && e.date[2] == Common.now.Day)
             {
                 for (int j = 0; (j < Common.events[2][i].title.Count) && !Common.events[2][i].print[j]; ++j)
                 {
+                    Debug.Log("pye");
                     //the day
                     int d = e.from[j][0] - Common.now.Hour;
 
                     if (d >= 0)
                     {
-                        tip += "今天是一個月一次的\n" + e.title[j] + '\n' + e.content[j] + '\n' + "在" + e.from[j][0].ToString() + " 點 " + e.from[j][1].ToString() + " 分 開始喔!!\n";
+                        tip += "今天是一年一次的\n" + e.title[j] + '\n' + e.content[j] + '\n' + "在" + e.from[j][0].ToString() + " 點 " + e.from[j][1].ToString() + " 分 開始喔!!\n";
 
                         if (d <= 1)
                         {

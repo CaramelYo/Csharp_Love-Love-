@@ -9,7 +9,7 @@ public class OptionButton : MonoBehaviour
 
     void Awake()
     {
-        UIEventListener.Get(gameObject).onClick = OptionClick;
+        UIEventListener.Get(gameObject).onClick += OptionClick;
         optionwindow = transform.Find("OptionWindow");
     }
 
