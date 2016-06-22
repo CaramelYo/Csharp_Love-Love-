@@ -238,7 +238,19 @@ public class Calendar : MonoBehaviour {
         {
             if (days[nowfirstday + Common.now.Day - 1].e[j] != -1)
             {
-                Events d = Common.events[j][days[nowfirstday + Common.now.Day - 1].e[j]];
+                Events d = null;
+
+                try
+                {
+                    d = Common.events[j][days[nowfirstday + Common.now.Day - 1].e[j]];
+                }
+                catch
+                {
+                    days[nowfirstday + Common.now.Day - 1].e[j] = -1;
+                    days[nowfirstday + Common.now.Day - 1].button.defaultColor = noteventday;
+                    EventMenu.Writefile(j);
+                    break;
+                }
 
                 for (int i = 0; i < d.title.Count; ++i)
                 {
@@ -250,8 +262,6 @@ public class Calendar : MonoBehaviour {
         }
 
         memogrid.enabled = true;
-
-        //SetEvent();
     }
 
     void refreshdaye()

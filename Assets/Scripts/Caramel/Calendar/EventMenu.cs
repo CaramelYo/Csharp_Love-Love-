@@ -112,7 +112,9 @@ public class EventMenu : MonoBehaviour
             }
         }
 
-        StreamWriter sw = new StreamWriter(Application.dataPath + '/' + Common.filename[j] + ".txt", false,  Encoding.UTF8);
+        Writefile(j);
+        /*
+        StreamWriter sw = new StreamWriter(Application.persistentDataPath + '/' + Common.filename[j] + ".txt", false,  Encoding.UTF8);
 
         for (i = 0; i < Common.events[j].Count; ++i)
         {
@@ -137,9 +139,38 @@ public class EventMenu : MonoBehaviour
             sw.Flush();
         }
         sw.Close();
-
+        */
         calendar.SendMessage("SetEvent");
         emCancelClick(null);
+    }
+
+    public static void Writefile(int j)
+    {
+        StreamWriter sw = new StreamWriter(Application.persistentDataPath + '/' + Common.filename[j] + ".txt", false, Encoding.UTF8);
+
+        for (int i = 0; i < Common.events[j].Count; ++i)
+        {
+            switch (j)
+            {
+                case 0:
+                    sw.Write(Common.events[0][i].date[0] + "," + Common.events[0][i].date[1] + "," + Common.events[0][i].date[2] + ',');
+                    break;
+                case 1:
+                    sw.Write(Common.events[1][i].date[2] + ",");
+                    break;
+                case 2:
+                    sw.Write(Common.events[2][i].date[1] + "," + Common.events[2][i].date[2] + ",");
+                    break;
+            }
+
+            for (int k = 0; k < Common.events[j][i].title.Count; ++k)
+            {
+                sw.Write(Common.events[j][i].title[k] + "," + Common.events[j][i].content[k] + "," + Common.events[j][i].from[k][0] + "," + Common.events[j][i].from[k][1] + ',');
+            }
+            sw.Write('\n');
+            sw.Flush();
+        }
+        sw.Close();
     }
 
     void emCancelClick(GameObject go)
