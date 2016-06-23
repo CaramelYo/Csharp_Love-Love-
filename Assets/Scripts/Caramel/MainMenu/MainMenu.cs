@@ -6,7 +6,7 @@ using System;
 public class MainMenu : MonoBehaviour {
     //in the Background
 
-    Transform calendar;
+    Transform calendar, chattingroom;
     UILabel title;
     GameObject tipwindow;
 
@@ -14,6 +14,9 @@ public class MainMenu : MonoBehaviour {
     {
         calendar = transform.Find("Calendar");
         UIEventListener.Get(calendar.gameObject).onClick += calendarClick;
+
+        chattingroom = transform.Find("ChattingRoom");
+        UIEventListener.Get(chattingroom.gameObject).onClick += chattingClick;
 
         title = transform.Find("Title").GetComponent<UILabel>();
         tipwindow = transform.Find("TipWindow").gameObject;
@@ -200,5 +203,10 @@ public class MainMenu : MonoBehaviour {
     void calendarClick(GameObject go)
     {
         SceneManager.LoadScene("Calendar");
+    }
+
+    void chattingClick(GameObject go)
+    {
+        SceneManager.LoadScene("ChattingRoom");
     }
 }
